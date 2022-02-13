@@ -1,7 +1,3 @@
-
-## FIX OUTCOME CHECK - does not recognise O winning, only X (????)
-## Unify pick and change square so the turn doesn't switch to the other player on invalid input
-
 class Game
     attr_accessor :coords, :current_player, :game_state
     def initialize(player_x, player_o)
@@ -18,7 +14,6 @@ class Game
         [self.coords[2], self.coords[5], self.coords[8]]]
         diags = [[self.coords[0], self.coords[4], self.coords[8]],
         [self.coords[2], self.coords[4], self.coords[6]]]
-        p outcome_helper(rows)
         if outcome_helper(rows)
             puts "#{check_winner_name(outcome_helper(rows))} wins by making a row!"
             self.game_state = "ended"
@@ -43,6 +38,7 @@ class Game
         end
         idx = self.coords.index(coord)
         self.coords[idx] = symbol
+        self.current_player = self.current_player == "X" ? "O" : "X"
     end
     def draw_game
         puts " #{self.coords[0]} | #{self.coords[1]} | #{self.coords[2]} "
@@ -55,17 +51,22 @@ class Game
         puts "Please enter a coordinate to place your #{self.current_player}."
         coord = gets.chomp
         self.change_square(coord, "#{self.current_player}")
-        self.current_player = self.current_player == "X" ? "O" : "X"
+    end
+    def play
+        until self.game_state == "ended"
+            self.draw_game
+            self.pick
+            self.check_outcome
+        end
     end
     private
     def outcome_helper(arr)
         arr.each do |sub_arr|
             if sub_arr.all? { |coord| coord == "X"} || sub_arr.all? { |coord| coord == "O"}
                 return sub_arr[0]
-            else
-                return nil
             end
         end
+        return nil
     end
     def check_winner_name(coord)
         return coord == "X" ? @player_x : @player_o ## I have no idea why this threw a no method error when using "self." but here we are
@@ -83,11 +84,7 @@ def play_game
     second = first == player1 ? player2 : player1
     puts "#{first} won the roll and gets to go first with X!"
     game = Game.new(first, second)
-    until game.game_state == "ended"
-        game.draw_game
-        game.pick
-        game.check_outcome
-    end
+    game.play
 end
 
 play_game
